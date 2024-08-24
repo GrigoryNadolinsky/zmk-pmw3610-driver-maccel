@@ -26,13 +26,13 @@ extern "C" {
 #    define MACCEL_TAKEOFF     6.8     // (K) --/++ value --> curve starts smoothlier/abruptlier
 #endif
 #ifndef MACCEL_GROWTH_RATE
-#    define MACCEL_GROWTH_RATE 0.6     // (M) --/++ value --> max limit reached slower/faster
+#    define MACCEL_GROWTH_RATE 0.4     // (M) --/++ value --> max limit reached slower/faster
 #endif
 #ifndef MACCEL_OFFSET
 #    define MACCEL_OFFSET      1.0     // (S) --/++ value --> growth kicks in earlier/later
 #endif
 #ifndef MACCEL_LIMIT
-#    define MACCEL_LIMIT       9.6     // (M) maximum acceleration factor
+#    define MACCEL_LIMIT       8.6     // (M) maximum acceleration factor
 #endif
 #ifndef MACCEL_CPI_THROTTLE_MS
 #    define MACCEL_CPI_THROTTLE_MS 200 // milliseconds to wait between requesting the device's current DPI
