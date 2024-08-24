@@ -14,6 +14,7 @@
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/input/input.h>
 #include <zmk/keymap.h>
+#include "math.h"
 #include "pmw3610.h"
 
 #include <zephyr/logging/log.h>
@@ -58,6 +59,21 @@ static int (*const async_init_fn[ASYNC_INIT_STEP_COUNT])(const struct device *de
     [ASYNC_INIT_STEP_CHECK_OB1] = pmw3610_async_init_check_ob1,
     [ASYNC_INIT_STEP_CONFIGURE] = pmw3610_async_init_configure,
 };
+
+static int64_t maccel_timer;
+static maccel_config_t g_maccel_config = {
+    // clang-format off
+    .scaling =      CONFIG_PMW3610_CPI,
+    .growth_rate =  MACCEL_GROWTH_RATE,
+    .offset =       MACCEL_OFFSET,
+    .limit =        MACCEL_LIMIT,
+    .takeoff =      MACCEL_TAKEOFF,
+    .enabled =      true
+    // clang-format on
+};
+
+#define _CONSTRAIN(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+#define CONSTRAIN_REPORT(val) (int16_t) _CONSTRAIN(val, XY_REPORT_MIN, XY_REPORT_MAX)
 
 //////// Function definitions //////////
 
@@ -689,6 +705,45 @@ static int pmw3610_report_data(const struct device *dev) {
 
     if (x != 0 || y != 0) {
         if (input_mode != SCROLL) {
+
+
+            static float rounding_carry_x = 0;
+            static float rounding_carry_y = 0;
+
+            const int64_t time_delta = k_uptime_delta(&maccel_timer);
+            maccel_timer = k_uptime_get();
+            static uint16_t device_dpi = CONFIG_PMW3610_CPI;
+            const int16_t x_dots = x;
+            const int16_t y_dots = y;
+            // euclidean distance: sqrt(x^2 + y^2)
+            const float distance_dots = sqrtf(x_dots * x_dots + y_dots * y_dots);
+            const float distance_inch = MACCEL_MAGNIFICATION_DPI * distance_dots / device_dpi;
+            const float velocity = distance_inch / time_delta;
+            // acceleration factor: y(x) = M - (M - 1) / {1 + e^[K(x - S)]}^(G/K)
+            // Design generalised sigmoid: https://www.desmos.com/calculator/grd1ox94hm
+            const float k             = g_maccel_config.takeoff;
+            const float g             = g_maccel_config.growth_rate;
+            const float s             = g_maccel_config.offset;
+            const float m             = g_maccel_config.limit;
+            const float maccel_factor = m - (m - 1) / powf(1 + expf(k * (velocity - s)), g / k);
+            // Reset carry when pointer swaps direction, to quickly follow user's hand.
+            if (x * rounding_carry_x < 0) rounding_carry_x = 0;
+            if (y * rounding_carry_y < 0) rounding_carry_y = 0;
+            // Convert mouse-report.x/y also to inches and account quantization carry.
+            const float de_cpi_n_scale = g_maccel_config.scaling / device_dpi;
+            const float x_new          = rounding_carry_x + maccel_factor * x_dots * de_cpi_n_scale;
+            const float y_new          = rounding_carry_y + maccel_factor * y_dots * de_cpi_n_scale;
+            // Add any remainder from the reported x/y integers as quantization-carry.
+            rounding_carry_x = x_new - (int)x_new;
+            rounding_carry_y = y_new - (int)y_new;
+            // Clamp values and report back accelerated values.
+            // x = CONSTRAIN_REPORT(x_new);
+            // y = CONSTRAIN_REPORT(y_new);
+            
+            x = x_new;
+            y = y_new;
+            
+
             input_report_rel(dev, INPUT_REL_X, x, false, K_FOREVER);
             input_report_rel(dev, INPUT_REL_Y, y, true, K_FOREVER);
         } else {
