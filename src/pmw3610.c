@@ -63,7 +63,6 @@ static int (*const async_init_fn[ASYNC_INIT_STEP_COUNT])(const struct device *de
 static int64_t maccel_timer;
 static maccel_config_t g_maccel_config = {
     // clang-format off
-    .scaling =      CONFIG_PMW3610_CPI,
     .growth_rate =  MACCEL_GROWTH_RATE,
     .offset =       MACCEL_OFFSET,
     .limit =        MACCEL_LIMIT,
@@ -713,39 +712,37 @@ static int pmw3610_report_data(const struct device *dev) {
             static float rounding_carry_x = 0;
             static float rounding_carry_y = 0;
 
-            const int64_t time_delta = k_uptime_delta(&maccel_timer);
-            if (time_delta > MACCEL_ROUNDING_CARRY_TIMEOUT_MS) {
+            const int64_t delta_time = k_uptime_delta(&maccel_timer);
+            if (delta_time > MACCEL_ROUNDING_CARRY_TIMEOUT_MS) {
                 rounding_carry_x = 0;
                 rounding_carry_y = 0;
             }
             maccel_timer = k_uptime_get();
-            static uint16_t device_dpi = CONFIG_PMW3610_CPI;
-            const int16_t x_dots = x;
-            const int16_t y_dots = y;
-            // euclidean distance: sqrt(x^2 + y^2)
-            const float distance_dots = sqrtf(x_dots * x_dots + y_dots * y_dots);
-            const float distance_inch = MACCEL_MAGNIFICATION_DPI * distance_dots / device_dpi;
-            const float velocity = distance_inch / time_delta;
-            // acceleration factor: y(x) = M - (M - 1) / {1 + e^[K(x - S)]}^(G/K)
-            // Design generalised sigmoid: https://www.desmos.com/calculator/grd1ox94hm
-            const float k             = g_maccel_config.takeoff;
-            const float g             = g_maccel_config.growth_rate;
-            const float s             = g_maccel_config.offset;
-            const float m             = g_maccel_config.limit;
-            const float maccel_factor = m - (m - 1) / powf(1 + expf(k * (velocity - s)), g / k);
-            // Reset carry when pointer swaps direction, to quickly follow user's hand.
-            if (x * rounding_carry_x < 0) rounding_carry_x = 0;
-            if (y * rounding_carry_y < 0) rounding_carry_y = 0;
-            // Convert mouse-report.x/y also to inches and account quantization carry.
-            const float de_cpi_n_scale = g_maccel_config.scaling / device_dpi;
-            const float x_new          = rounding_carry_x + maccel_factor * x_dots * de_cpi_n_scale;
-            const float y_new          = rounding_carry_y + maccel_factor * y_dots * de_cpi_n_scale;
-            // Add any remainder from the reported x/y integers as quantization-carry.
-            rounding_carry_x = x_new - (int)x_new;
-            rounding_carry_y = y_new - (int)y_new;
+            static uint16_t device_cpi = CONFIG_PMW3610_CPI;
+            const float dpi_correction = (float)1000.0f / device_cpi;
+            // calculate euclidean distance moved (sqrt(x^2 + y^2))
+            const float distance = sqrtf(x * x + y * y);
+            // calculate delta velocity: dv = distance/dt
+            const float velocity_raw = distance / delta_time;
+            // correct raw velocity for dpi
+            const float velocity = dpi_correction * velocity_raw;
+            // letter variables for readability of maths:
+            const float k = g_maccel_config.takeoff;
+            const float g = g_maccel_config.growth_rate;
+            const float s = g_maccel_config.offset;
+            const float m = g_maccel_config.limit;
+            // acceleration factor: f(v) = 1 - (1 - M) / {1 + e^[K(v - S)]}^(G/K):
+            // Generalised Sigmoid Function, see https://www.desmos.com/calculator/k9vr0y2gev
+            const float maccel_factor = MACCEL_LIMIT_UPPER - (MACCEL_LIMIT_UPPER - m) / powf(1 + expf(k * (velocity - s)), g / k);
+            // multiply mouse reports by acceleration factor, and account for previous quantization errors:
+            const float new_x = rounding_carry_x + maccel_factor * x;
+            const float new_y = rounding_carry_y + maccel_factor * y;
+            // Accumulate any difference from next integer (quantization).
+            rounding_carry_x = new_x - (int)new_x;
+            rounding_carry_y = new_y - (int)new_y;
             // Clamp values and report back accelerated values.
-            x = CONSTRAIN_REPORT(x_new);
-            y = CONSTRAIN_REPORT(y_new);
+            x = CONSTRAIN_REPORT(new_x);
+            y = CONSTRAIN_REPORT(new_y);
 
             input_report_rel(dev, INPUT_REL_X, x, false, K_FOREVER);
             input_report_rel(dev, INPUT_REL_Y, y, true, K_FOREVER);
