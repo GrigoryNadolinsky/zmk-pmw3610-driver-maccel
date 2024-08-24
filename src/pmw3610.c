@@ -72,6 +72,9 @@ static maccel_config_t g_maccel_config = {
     // clang-format on
 };
 
+
+#define XY_REPORT_MIN INT8_MIN
+#define XY_REPORT_MAX INT8_MAX
 #define _CONSTRAIN(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
 #define CONSTRAIN_REPORT(val) (int16_t) _CONSTRAIN(val, XY_REPORT_MIN, XY_REPORT_MAX)
 
@@ -711,6 +714,10 @@ static int pmw3610_report_data(const struct device *dev) {
             static float rounding_carry_y = 0;
 
             const int64_t time_delta = k_uptime_delta(&maccel_timer);
+            if (time_delta > MACCEL_ROUNDING_CARRY_TIMEOUT_MS) {
+                rounding_carry_x = 0;
+                rounding_carry_y = 0;
+            }
             maccel_timer = k_uptime_get();
             static uint16_t device_dpi = CONFIG_PMW3610_CPI;
             const int16_t x_dots = x;
@@ -737,12 +744,8 @@ static int pmw3610_report_data(const struct device *dev) {
             rounding_carry_x = x_new - (int)x_new;
             rounding_carry_y = y_new - (int)y_new;
             // Clamp values and report back accelerated values.
-            // x = CONSTRAIN_REPORT(x_new);
-            // y = CONSTRAIN_REPORT(y_new);
-            
-            x = x_new;
-            y = y_new;
-            
+            x = CONSTRAIN_REPORT(x_new);
+            y = CONSTRAIN_REPORT(y_new);
 
             input_report_rel(dev, INPUT_REL_X, x, false, K_FOREVER);
             input_report_rel(dev, INPUT_REL_Y, y, true, K_FOREVER);

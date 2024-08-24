@@ -42,6 +42,9 @@ extern "C" {
 #endif
 
 #define MACCEL_MAGNIFICATION_DPI 1000
+#ifndef MACCEL_ROUNDING_CARRY_TIMEOUT_MS
+#    define MACCEL_ROUNDING_CARRY_TIMEOUT_MS 200 // milliseconds after which to reset quantization error correction (forget rounding remainder)
+#endif
 
 typedef struct _maccel_config_t {
     float scaling;
