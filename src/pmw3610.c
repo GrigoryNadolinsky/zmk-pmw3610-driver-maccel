@@ -60,17 +60,19 @@ static int (*const async_init_fn[ASYNC_INIT_STEP_COUNT])(const struct device *de
     [ASYNC_INIT_STEP_CONFIGURE] = pmw3610_async_init_configure,
 };
 
+
+#ifdef CONFIG_PMW3610_MACCEL
 static int64_t maccel_timer;
 static maccel_config_t g_maccel_config = {
     // clang-format off
-    .growth_rate =  MACCEL_GROWTH_RATE,
-    .offset =       MACCEL_OFFSET,
-    .limit =        MACCEL_LIMIT,
-    .takeoff =      MACCEL_TAKEOFF,
+    .growth_rate =  CONFIG_PMW3610_MACCEL_GROWTH_RATE,
+    .offset =       CONFIG_PMW3610_MACCEL_OFFSET,
+    .limit =        CONFIG_PMW3610_MACCEL_LIMIT,
+    .takeoff =      CONFIG_PMW3610_MACCEL_TAKEOFF,
     .enabled =      true
     // clang-format on
 };
-
+#endif
 
 #define XY_REPORT_MIN INT8_MIN
 #define XY_REPORT_MAX INT8_MAX
@@ -709,16 +711,18 @@ static int pmw3610_report_data(const struct device *dev) {
         if (input_mode != SCROLL) {
 
 
+
+#ifdef CONFIG_PMW3610_MACCEL
             static float rounding_carry_x = 0;
             static float rounding_carry_y = 0;
 
             const int64_t delta_time = k_uptime_delta(&maccel_timer);
-            if (delta_time > MACCEL_ROUNDING_CARRY_TIMEOUT_MS) {
+            if (delta_time > CONFIG_PMW3610_MACCEL_ROUNDING_CARRY_TIMEOUT_MS) {
                 rounding_carry_x = 0;
                 rounding_carry_y = 0;
             }
             maccel_timer = k_uptime_get();
-            static uint16_t device_cpi = CONFIG_PMW3610_CPI;
+            static uint16_t device_cpi = data->curr_cpi;
             const float dpi_correction = (float)1000.0f / device_cpi;
             // calculate euclidean distance moved (sqrt(x^2 + y^2))
             const float distance = sqrtf(x * x + y * y);
@@ -733,7 +737,7 @@ static int pmw3610_report_data(const struct device *dev) {
             const float m = g_maccel_config.limit;
             // acceleration factor: f(v) = 1 - (1 - M) / {1 + e^[K(v - S)]}^(G/K):
             // Generalised Sigmoid Function, see https://www.desmos.com/calculator/k9vr0y2gev
-            const float maccel_factor = MACCEL_LIMIT_UPPER - (MACCEL_LIMIT_UPPER - m) / powf(1 + expf(k * (velocity - s)), g / k);
+            const float maccel_factor = CONFIG_PMW3610_MACCEL_LIMIT_UPPER - (CONFIG_PMW3610_MACCEL_LIMIT_UPPER - m) / powf(1 + expf(k * (velocity - s)), g / k);
             // multiply mouse reports by acceleration factor, and account for previous quantization errors:
             const float new_x = rounding_carry_x + maccel_factor * x;
             const float new_y = rounding_carry_y + maccel_factor * y;
@@ -743,7 +747,7 @@ static int pmw3610_report_data(const struct device *dev) {
             // Clamp values and report back accelerated values.
             x = CONSTRAIN_REPORT(new_x);
             y = CONSTRAIN_REPORT(new_y);
-
+#endif
             input_report_rel(dev, INPUT_REL_X, x, false, K_FOREVER);
             input_report_rel(dev, INPUT_REL_Y, y, true, K_FOREVER);
         } else {

@@ -7,30 +7,7 @@
 extern "C" {
 #endif
 
-
-
-#ifndef MACCEL_TAKEOFF
-#    define MACCEL_TAKEOFF 2.0 // lower/higher value = curve starts more smoothly/abruptly
-#endif
-#ifndef MACCEL_GROWTH_RATE
-#    define MACCEL_GROWTH_RATE 0.25 // lower/higher value = curve reaches its upper limit slower/faster
-#endif
-#ifndef MACCEL_OFFSET
-#    define MACCEL_OFFSET 2.2 // lower/higher value = acceleration kicks in earlier/later
-#endif
-#ifndef MACCEL_LIMIT
-#    define MACCEL_LIMIT 0.2 // lower limit of accel curve (minimum acceleration factor)
-#endif
-#ifndef MACCEL_CPI_THROTTLE_MS
-#    define MACCEL_CPI_THROTTLE_MS 200 // milliseconds to wait between requesting the device's current DPI
-#endif
-#ifndef MACCEL_LIMIT_UPPER
-#    define MACCEL_LIMIT_UPPER 1 // upper limit of accel curve, recommended to leave at 1; adjust DPI setting instead.
-#endif
-#ifndef MACCEL_ROUNDING_CARRY_TIMEOUT_MS
-#    define MACCEL_ROUNDING_CARRY_TIMEOUT_MS 200 // milliseconds after which to reset quantization error correction (forget rounding remainder)
-#endif
-
+#ifdef CONFIG_PMW3610_MACCEL
 typedef struct _maccel_config_t {
     float growth_rate;
     float offset;
@@ -38,7 +15,7 @@ typedef struct _maccel_config_t {
     float takeoff;
     bool  enabled;
 } maccel_config_t;
-
+#endif
 
 /* Timings (in us) used in SPI communication. Since MCU should not do other tasks during wait,
  * k_busy_wait is used instead of k_sleep */
