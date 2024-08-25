@@ -65,10 +65,10 @@ static int (*const async_init_fn[ASYNC_INIT_STEP_COUNT])(const struct device *de
 static int64_t maccel_timer;
 static maccel_config_t g_maccel_config = {
     // clang-format off
-    .growth_rate =  CONFIG_PMW3610_MACCEL_GROWTH_RATE,
-    .offset =       CONFIG_PMW3610_MACCEL_OFFSET,
-    .limit =        CONFIG_PMW3610_MACCEL_LIMIT,
-    .takeoff =      CONFIG_PMW3610_MACCEL_TAKEOFF,
+    .growth_rate =  CONFIG_PMW3610_MACCEL_GROWTH_RATE / 100.0f,
+    .offset =       CONFIG_PMW3610_MACCEL_OFFSET / 100.0f,
+    .limit =        CONFIG_PMW3610_MACCEL_LIMIT / 100.0f,
+    .takeoff =      CONFIG_PMW3610_MACCEL_TAKEOFF / 100.0f,
     .enabled =      true
     // clang-format on
 };
@@ -737,7 +737,8 @@ static int pmw3610_report_data(const struct device *dev) {
             const float m = g_maccel_config.limit;
             // acceleration factor: f(v) = 1 - (1 - M) / {1 + e^[K(v - S)]}^(G/K):
             // Generalised Sigmoid Function, see https://www.desmos.com/calculator/k9vr0y2gev
-            const float maccel_factor = CONFIG_PMW3610_MACCEL_LIMIT_UPPER - (CONFIG_PMW3610_MACCEL_LIMIT_UPPER - m) / powf(1 + expf(k * (velocity - s)), g / k);
+            const float upper_limit = CONFIG_PMW3610_MACCEL_LIMIT_UPPER / 100.0f;
+            const float maccel_factor = upper_limit - (upper_limit - m) / powf(1 + expf(k * (velocity - s)), g / k);
             // multiply mouse reports by acceleration factor, and account for previous quantization errors:
             const float new_x = rounding_carry_x + maccel_factor * x;
             const float new_y = rounding_carry_y + maccel_factor * y;

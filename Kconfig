@@ -50,23 +50,23 @@ config PMW3610_MACCEL
       Make sure to disable OS level mouse acceleration when using it
 
 config PMW3610_MACCEL_TAKEOFF
-    float "Mouse acceleration curve takes off more smoothly/abruptly"
-    default 2.0
+    int "Mouse acceleration curve takes off more smoothly/abruptly, it will be divided by 100"
+    default 200
     help
         The TAKEOFF variable controls how smoothly or abruptly the acceleration curve takes off.
         A higher value will make it take off more abruptly, a lower value smoothens out the start of the curve.
 
 config PMW3610_MACCEL_GROWTH_RATE
-    float "Mouse acceleration curve reaches its upper limit slower/faster"
-    default 0.25
+    int "Mouse acceleration curve reaches its upper limit slower/faster, it will be divided by 100"
+    default 025
     help
         The GROWTH_RATE variable sets the growth rate of the acceleration curve.
         A lower value will result in a flatter curve which takes longer to reach its LIMIT.
         A higher value will result in a steeper curve, which will reach its LIMIT faster.
 
 config PMW3610_MACCEL_OFFSET
-    float "Mouse acceleration acceleration kicks in earlier/later"
-    default 2.2
+    int "Mouse acceleration acceleration kicks in earlier/later, it will be divided by 100"
+    default 220
     help
         The OFFSET variable moves the entire curve towards the right. Offsetting the curve to the right 
         means acceleration will kick in later, which is useful for low speed precision - in effect what 
@@ -74,16 +74,16 @@ config PMW3610_MACCEL_OFFSET
         need for a sniping mode.
 
 config PMW3610_MACCEL_LIMIT
-    float "Mouse acceleration lower limit of accel curve (minimum acceleration factor)"
-    default 0.2
+    int "Mouse acceleration lower limit of accel curve (minimum acceleration factor)"
+    default 020
     help
         The LIMIT variable sets the lower limit for the acceleration curve.
         This is the minimum acceleration factor at which the curve will start.
         In effect this adjusts the sensitivity for low speed precision movements.
 
 config PMW3610_MACCEL_UPPER_LIMIT
-    float "Mouse acceleration upper limit of accel curve (minimum acceleration factor)"
-    default 0.2
+    int "Mouse acceleration upper limit of accel curve (minimum acceleration factor), it will be divided by 100"
+    default 020
     help
         The LIMIT variable sets the lower limit for the acceleration curve.
         This is the minimum acceleration factor at which the curve will start.
