@@ -722,7 +722,7 @@ static int pmw3610_report_data(const struct device *dev) {
                 rounding_carry_y = 0;
             }
             maccel_timer = k_uptime_get();
-            static uint16_t device_cpi = data->curr_cpi;
+            uint32_t device_cpi = data->curr_cpi;
             const float dpi_correction = (float)1000.0f / device_cpi;
             // calculate euclidean distance moved (sqrt(x^2 + y^2))
             const float distance = sqrtf(x * x + y * y);
