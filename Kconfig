@@ -81,13 +81,11 @@ config PMW3610_MACCEL_LIMIT
         This is the minimum acceleration factor at which the curve will start.
         In effect this adjusts the sensitivity for low speed precision movements.
 
-config PMW3610_MACCEL_UPPER_LIMIT
-    int "Mouse acceleration upper limit of accel curve (minimum acceleration factor), it will be divided by 100"
-    default 020
+config PMW3610_MACCEL_LIMIT_UPPER
+    int "Mouse acceleration upper limit of accel curve (maximum acceleration factor), it will be divided by 100"
+    default 100
     help
-        The LIMIT variable sets the lower limit for the acceleration curve.
-        This is the minimum acceleration factor at which the curve will start.
-        In effect this adjusts the sensitivity for low speed precision movements.
+        The upper limit of the curve is fixed at 1, which means that at high speed sensitivity equals your default DPI. If you want to adjust high speed sensitivity, adjust your DPI.
 
 config PMW3610_MACCEL_ROUNDING_CARRY_TIMEOUT_MS
     int "Mouse acceleration reset error correction"
