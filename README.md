@@ -98,3 +98,23 @@ CONFIG_INPUT=y
 CONFIG_ZMK_MOUSE=y
 CONFIG_PMW3610=y
 ```
+
+
+## Mouse Acceleration
+This module also provides driver level mouse acceleration ported from [QMK maccel, developed by Wimads and finrod09](https://github.com/finrod09/qmk_userspace_features/tree/main/maccel). 
+To enable it, first make sure to disable OS level mouse acceleration and then add this to your `board.config`.
+
+```conf
+CONFIG_PMW3610_MACCEL=y
+```
+All the parameters for the maccel equation can be changed(e.g. GROWTH_RATE,TAKE_OFF), to learn more about how these values 
+affect the acceleration read [original documentation](https://github.com/finrod09/qmk_userspace_features/blob/main/maccel/readme.md#configuration).
+
+Since KConfig does not support floats, you should multiply the values you put in the formula you use by 100, as in the following example.
+
+```conf
+CONFIG_PMW3610_MACCEL_TAKEOFF=200 //2.0
+CONFIG_PMW3610_MACCEL_GROWTH_RATE=025 //0.25
+CONFIG_PMW3610_MACCEL_OFFSET=220 //2.2
+CONFIG_PMW3610_MACCEL_LIMIT=020 //0.2
+```
