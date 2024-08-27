@@ -106,7 +106,9 @@ To enable it, first make sure to disable OS level mouse acceleration and then ad
 
 ```conf
 CONFIG_PMW3610_MACCEL=y
+CONFIG_PMW3610_CPI_DIVIDOR=1
 ```
+
 All the parameters for the maccel equation can be changed(e.g. GROWTH_RATE,TAKE_OFF), to learn more about how these values 
 affect the acceleration read [original documentation](https://github.com/finrod09/qmk_userspace_features/blob/main/maccel/readme.md#configuration). To change the parameters for maccell, you should multiply the value you intend to use by 100, as in the following example.
 
