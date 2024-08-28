@@ -113,8 +113,12 @@ All the parameters for the maccel equation can be changed(e.g. GROWTH_RATE,TAKE_
 affect the acceleration read [original documentation](https://github.com/finrod09/qmk_userspace_features/blob/main/maccel/readme.md#configuration). To change the parameters for maccell, you should multiply the value you intend to use by 100, as in the following example.
 
 ```conf
-CONFIG_PMW3610_MACCEL_TAKEOFF=200 //2.0
-CONFIG_PMW3610_MACCEL_GROWTH_RATE=025 //0.25
-CONFIG_PMW3610_MACCEL_OFFSET=220 //2.2
-CONFIG_PMW3610_MACCEL_LIMIT=020 //0.2
+# 200 instead of 2.0 for qmk
+CONFIG_PMW3610_MACCEL_TAKEOFF=200
+# 025 instead of 0.25 for qmk
+CONFIG_PMW3610_MACCEL_GROWTH_RATE=025
+# 220 instead of 2.2 for qmk
+CONFIG_PMW3610_MACCEL_OFFSET=220
+# 020 instead of 0.2 for qmk
+CONFIG_PMW3610_MACCEL_LIMIT=020
 ```
