@@ -35,6 +35,6 @@ properties:
     description: ZMK layer ID to activate for automouse mode, or -1 to disable.
 
   evt-type:
-    type: string
+    type: int
     required: false
-    description: Event type emitted by the driver (e.g. "move", "scroll", "both").
+    description: Numeric event type emitted by the driver (e.g. 0=move, 1=scroll, 2=both).
