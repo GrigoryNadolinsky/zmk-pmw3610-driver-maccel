@@ -6,35 +6,35 @@ compatible: "pixart,pmw3610"
 include: spi-device.yaml
 
 properties:
-  # Optional CPI/DPI setting
   cpi:
     type: int
     required: false
     description: Initial sensor resolution in counts per inch (CPI/DPI).
 
-  # Sensor interrupt line
   irq-gpios:
     type: phandle-array
     required: true
     description: Interrupt GPIO for the sensor.
 
-  # Layers for scroll mode (array of ints)
   scroll-layers:
     type: array
     required: false
     default: []
     description: ZMK layer IDs to activate for scroll mode.
 
-  # Layers for snipe/precision mode (array of ints)
   snipe-layers:
     type: array
     required: false
     default: []
     description: ZMK layer IDs to activate for snipe/precision mode.
 
-  # Single layer for automouse mode
   automouse-layer:
     type: int
     required: false
     default: -1
     description: ZMK layer ID to activate for automouse mode, or -1 to disable.
+
+  evt-type:
+    type: string
+    required: false
+    description: Event type emitted by the driver (e.g. "move", "scroll", "both").
