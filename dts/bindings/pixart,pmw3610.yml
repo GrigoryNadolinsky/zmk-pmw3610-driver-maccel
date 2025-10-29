@@ -1,20 +1,44 @@
 description: |
-  Sensor driver for the pixart PMW3610 mouse sensor 
+  Sensor driver for the PixArt PMW3610 mouse sensor.
 
 compatible: "pixart,pmw3610"
 
 include: spi-device.yaml
 
 properties:
+  # Optional CPI/DPI установки
+  cpi:
+    type: int
+    required: false
+    description: Initial sensor resolution in counts per inch (CPI/DPI).
+
+  # Линия прерывания сенсора
   irq-gpios:
     type: phandle-array
     required: true
+    description: Interrupt GPIO for the sensor.
+
+  # Слои для режима скролла (может быть один или несколько)
   scroll-layers:
     type: array
+    items:
+      - type: int
+    required: false
     default: []
+    description: ZMK layer IDs to activate for scroll mode.
+
+  # Слои для режима "snipe" (точность)
   snipe-layers:
     type: array
+    items:
+      - type: int
+    required: false
     default: []
+    description: ZMK layer IDs to activate for snipe/precision mode.
+
+  # Слой для автомыши (один)
   automouse-layer:
     type: int
+    required: false
     default: -1
+    description: ZMK layer ID to activate for automouse mode, or -1 to disable.
