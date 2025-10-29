@@ -6,37 +6,33 @@ compatible: "pixart,pmw3610"
 include: spi-device.yaml
 
 properties:
-  # Optional CPI/DPI установки
+  # Optional CPI/DPI setting
   cpi:
     type: int
     required: false
     description: Initial sensor resolution in counts per inch (CPI/DPI).
 
-  # Линия прерывания сенсора
+  # Sensor interrupt line
   irq-gpios:
     type: phandle-array
     required: true
     description: Interrupt GPIO for the sensor.
 
-  # Слои для режима скролла (может быть один или несколько)
+  # Layers for scroll mode (array of ints)
   scroll-layers:
     type: array
-    items:
-      - type: int
     required: false
     default: []
     description: ZMK layer IDs to activate for scroll mode.
 
-  # Слои для режима "snipe" (точность)
+  # Layers for snipe/precision mode (array of ints)
   snipe-layers:
     type: array
-    items:
-      - type: int
     required: false
     default: []
     description: ZMK layer IDs to activate for snipe/precision mode.
 
-  # Слой для автомыши (один)
+  # Single layer for automouse mode
   automouse-layer:
     type: int
     required: false
